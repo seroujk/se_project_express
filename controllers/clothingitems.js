@@ -82,6 +82,6 @@ module.exports.unlikeClothingItem = (req, res) => {
       if (err.name === "CastError") {
         return res.status(INVALID_DATA_ERROR_CODE).send({ message: "Invalid ID format" });
       }
-      res.status(500).send({ message: "Server error" });
+      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
