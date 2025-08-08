@@ -1,10 +1,9 @@
-const clothingitem = require("../models/clothingitem");
 const ClothingItem = require("../models/clothingitem");
 const {
   INVALID_DATA_ERROR_CODE,
   SERVER_ERROR_CODE,
   DATA_NOT_FOUND_ERROR_CODE,
-  UNAUTHORIZED_DATA_CODE,
+  UNAUTHORIZED_DATA_ERROR_CODE,
 } = require("../utils/errors");
 
 // GET /items - return all clothing items
@@ -44,7 +43,7 @@ module.exports.deleteClothingItem = (req, res) => {
           .send({ message: "Item Not Found" });
       } else if (clothingItem.owner.toString() !== owner) {
         return res
-          .status(UNAUTHORIZED_DATA_CODE)
+          .status(UNAUTHORIZED_DATA_ERROR_CODE)
           .send({ message: "You cannot delete another user's items" });
       }
       clothingItem

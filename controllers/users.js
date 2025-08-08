@@ -5,6 +5,8 @@ const {
   INVALID_DATA_ERROR_CODE,
   SERVER_ERROR_CODE,
   DATA_NOT_FOUND_ERROR_CODE,
+  DUPLICATE_DATA_ERROR_CODE_CODE,
+  UNAUTHORIZED_DATA__ERROR_CODE
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
@@ -82,7 +84,7 @@ module.exports.createUser = (req, res) => {
           .send({ message: "Invalid user data" });
       }
       if (err.code === 11000) {
-        return res.status(409).send({ message: "Email already exists" });
+        return res.status(DUPLICATE_DATA_ERROR_CODE_CODE).send({ message: "Email already exists" });
       }
       res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
@@ -101,6 +103,6 @@ module.exports.login = (req, res) => {
     })
     .catch((err) => {
       //authentication error
-      res.status(401).send({ message: err.message });
+      res.status(UNAUTHORIZED_DATA__ERROR_CODE).send({ message: err.message });
     });
 };
