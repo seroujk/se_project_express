@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
 const usersRouter = require("./routes/users");
 const clothingItemsRouter = require("./routes/clothingitems");
 
@@ -10,6 +11,8 @@ mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 app.use(express.json());
 
+app.use(cors());
+
 //Routers
 app.use(usersRouter);
 app.use(clothingItemsRouter);
@@ -19,13 +22,7 @@ app.use((req, res) => {
   res.status(404).send({ message: "Requested resource not found" });
 });
 
-//Authorization middleware
-app.use((req, res, next) => {
-  req.user = {
-    _id: '687d80ed2e552e4e33ad48a0'
-  };
-  next();
-});
+
 
 app.listen(PORT, () => {
   console.log(`App listening at http://localhost:${PORT}`);

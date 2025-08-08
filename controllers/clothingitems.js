@@ -9,7 +9,9 @@ const {
 module.exports.getClothingItems = (req, res) => {
   ClothingItem.find({})
     .then((clothingItems) => res.send(clothingItems))
-    .catch(() => res.status(SERVER_ERROR_CODE).send({ message: "Server error" }));
+    .catch(() =>
+      res.status(SERVER_ERROR_CODE).send({ message: "Server error" })
+    );
 };
 
 // POST /items - create a clothing item
@@ -21,7 +23,9 @@ module.exports.createClothingItem = (req, res) => {
     .then((clothingItem) => res.status(201).send(clothingItem))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(INVALID_DATA_ERROR_CODE).send({ message: "Invalid clothing item data" });
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid clothing item data" });
       }
       res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
@@ -29,16 +33,20 @@ module.exports.createClothingItem = (req, res) => {
 
 // DELETE /items/:itemId - delete a clothing item
 module.exports.deleteClothingItem = (req, res) => {
-  ClothingItem.findByIdAndDelete(req.params.itemId)
+  ClothingItem.findOneAndDelete({ _id: req.params.itemId, owner: req.user._id })
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res.status(DATA_NOT_FOUND_ERROR_CODE).send({ message: "Item not found" });
+        return res
+          .status(DATA_NOT_FOUND_ERROR_CODE)
+          .send({ message: "Item not found" });
       }
       res.send({ message: "Item successfully deleted" });
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR_CODE).send({ message: "Invalid ID format" });
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid ID format" });
       }
       res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
@@ -53,13 +61,17 @@ module.exports.likeClothingItem = (req, res) => {
   )
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res.status(DATA_NOT_FOUND_ERROR_CODE).send({ message: "Item not found" });
+        return res
+          .status(DATA_NOT_FOUND_ERROR_CODE)
+          .send({ message: "Item not found" });
       }
       res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR_CODE).send({ message: "Invalid ID format" });
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid ID format" });
       }
       res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
@@ -74,13 +86,17 @@ module.exports.unlikeClothingItem = (req, res) => {
   )
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res.status(DATA_NOT_FOUND_ERROR_CODE).send({ message: "Item not found" });
+        return res
+          .status(DATA_NOT_FOUND_ERROR_CODE)
+          .send({ message: "Item not found" });
       }
       res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(INVALID_DATA_ERROR_CODE).send({ message: "Invalid ID format" });
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid ID format" });
       }
       res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
