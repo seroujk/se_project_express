@@ -8,14 +8,6 @@ const {
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-// GET /users - returns all users
-module.exports.getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.send(users))
-    .catch(() =>
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" })
-    );
-};
 
 // GET /users/me - returns a user by _id
 module.exports.getCurrentUser = (req, res) => {

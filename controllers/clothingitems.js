@@ -1,8 +1,10 @@
+const clothingitem = require("../models/clothingitem");
 const ClothingItem = require("../models/clothingitem");
 const {
   INVALID_DATA_ERROR_CODE,
   SERVER_ERROR_CODE,
   DATA_NOT_FOUND_ERROR_CODE,
+  UNAUTHORIZED_DATA_CODE,
 } = require("../utils/errors");
 
 // GET /items - return all clothing items
@@ -33,14 +35,28 @@ module.exports.createClothingItem = (req, res) => {
 
 // DELETE /items/:itemId - delete a clothing item
 module.exports.deleteClothingItem = (req, res) => {
-  ClothingItem.findOneAndDelete({ _id: req.params.itemId, owner: req.user._id })
+  const owner = req.user._id;
+  ClothingItem.findById(req.params.itemId)
     .then((clothingItem) => {
       if (!clothingItem) {
         return res
           .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "Item not found" });
+          .send({ message: "Item Not Found" });
+      } else if (clothingItem.owner.toString() !== owner) {
+        return res
+          .status(UNAUTHORIZED_DATA_CODE)
+          .send({ message: "You cannot delete another user's items" });
       }
-      res.send({ message: "Item successfully deleted" });
+      clothingItem
+        .deleteOne()
+        .then(() => {
+          return res.send({ message: "Item successfully deleted" });
+        })
+        .catch((err) => {
+          return res
+            .status(SERVER_ERROR_CODE)
+            .send({ message: `Deletion Error: ${err}` });
+        });
     })
     .catch((err) => {
       if (err.name === "CastError") {
