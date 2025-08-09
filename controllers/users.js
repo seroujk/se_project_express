@@ -74,7 +74,7 @@ module.exports.createUser = (req, res) => {
     .then((user) => {
       const userObject = user.toObject();
       delete userObject.password;
-      res.status(201).send(userObject);
+     return res.status(201).send(userObject);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -109,10 +109,10 @@ module.exports.login = (req, res) => {
     .catch((err) => {
       // Authentication error
       if (err.message.includes("Incorrect email or password")) {
-        res
+        return res
           .status(UNAUTHORIZED_DATA__ERROR_CODE)
           .send({ message: err.message });
       }
-      res.status(SERVER_ERROR_CODE).send({message: "Server error"})
+      return res.status(SERVER_ERROR_CODE).send({message: "Server error"})
     });
 };
