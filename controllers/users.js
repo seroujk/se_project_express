@@ -1,15 +1,14 @@
-const User = require("../models/user");
-const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const User = require("../models/user");
 const {
   INVALID_DATA_ERROR_CODE,
   SERVER_ERROR_CODE,
   DATA_NOT_FOUND_ERROR_CODE,
   DUPLICATE_DATA_ERROR_CODE_CODE,
-  UNAUTHORIZED_DATA__ERROR_CODE
+  UNAUTHORIZED_DATA__ERROR_CODE,
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
-
 
 // GET /users/me - returns a user by _id
 module.exports.getCurrentUser = (req, res) => {
@@ -20,49 +19,48 @@ module.exports.getCurrentUser = (req, res) => {
           .status(DATA_NOT_FOUND_ERROR_CODE)
           .send({ message: "User not found" });
       }
-      res.send(user);
+     return res.send(user);
     })
     .catch((err) => {
-      console.log("get user by id error catch", err);
       if (err.name === "CastError") {
         return res
           .status(INVALID_DATA_ERROR_CODE)
           .send({ message: "Invalid ID format" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
 
-//PATCH users/me
-module.exports.updateCurrentUser = (req,res) =>{
-   const {name, avatar} = req.body
+// PATCH users/me
+module.exports.updateCurrentUser = (req, res) => {
+  const { name, avatar } = req.body;
 
-   User.findByIdAndUpdate(
+  User.findByIdAndUpdate(
     req.user._id,
-    {name,avatar},
-    {new:true, runValidators:true}
-   )
-   .then((updatedUser)=>{
-    if(!updatedUser){
-      return res
-        .status(DATA_NOT_FOUND_ERROR_CODE)
-        .send({message: 'User not found'});
-    }
-    res.status(200).send(updatedUser);
-   })
-   .catch((err)=>{
-    if(err.name === "ValidationError"){
-      return res
-      .status(INVALID_DATA_ERROR_CODE)
-      .send({message : 'Invalid user data'})
-    }
-    if(err.name === "CastError"){
-      return res
-      .status(INVALID_DATA_ERROR_CODE)
-      .send({message: 'Invalid ID format'})
-    }
-    res.status(SERVER_ERROR_CODE).send({message: 'Server Error'});
-   })
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        return res
+          .status(DATA_NOT_FOUND_ERROR_CODE)
+          .send({ message: "User not found" });
+      }
+      return res.status(200).send(updatedUser);
+    })
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid user data" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(INVALID_DATA_ERROR_CODE)
+          .send({ message: "Invalid ID format" });
+      }
+      return res.status(SERVER_ERROR_CODE).send({ message: "Server Error" });
+    });
 };
 
 // POST /users - create a user
@@ -75,8 +73,9 @@ module.exports.createUser = (req, res) => {
     )
     .then((user) => {
       const userObject = user.toObject();
-      delete userObject.password
-      res.status(201).send(userObject)})
+      delete userObject.password;
+      res.status(201).send(userObject);
+    })
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res
@@ -84,25 +83,36 @@ module.exports.createUser = (req, res) => {
           .send({ message: "Invalid user data" });
       }
       if (err.code === 11000) {
-        return res.status(DUPLICATE_DATA_ERROR_CODE_CODE).send({ message: "Email already exists" });
+        return res
+          .status(DUPLICATE_DATA_ERROR_CODE_CODE)
+          .send({ message: "Email already exists" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
 
-//Authentication Handler
+// Authentication Handler
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
-
+  if (!email || !password) {
+    return res
+      .status(INVALID_DATA_ERROR_CODE)
+      .send({ message: "The email and password fields are required" });
+  }
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      res.send({ token : token });
+      res.send({ token });
     })
     .catch((err) => {
-      //authentication error
-      res.status(UNAUTHORIZED_DATA__ERROR_CODE).send({ message: err.message });
+      // Authentication error
+      if (err.message.includes("Incorrect email or password")) {
+        res
+          .status(UNAUTHORIZED_DATA__ERROR_CODE)
+          .send({ message: err.message });
+      }
+      res.status(SERVER_ERROR_CODE).send({message: "Server error"})
     });
 };

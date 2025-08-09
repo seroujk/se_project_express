@@ -3,7 +3,7 @@ const {
   INVALID_DATA_ERROR_CODE,
   SERVER_ERROR_CODE,
   DATA_NOT_FOUND_ERROR_CODE,
-  UNAUTHORIZED_DATA_ERROR_CODE,
+  FORBIDDEN_ERROR_CODE
 } = require("../utils/errors");
 
 // GET /items - return all clothing items
@@ -28,7 +28,7 @@ module.exports.createClothingItem = (req, res) => {
           .status(INVALID_DATA_ERROR_CODE)
           .send({ message: "Invalid clothing item data" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
 
@@ -41,12 +41,13 @@ module.exports.deleteClothingItem = (req, res) => {
         return res
           .status(DATA_NOT_FOUND_ERROR_CODE)
           .send({ message: "Item Not Found" });
-      } else if (clothingItem.owner.toString() !== owner) {
+      }
+      if (clothingItem.owner.toString() !== owner) {
         return res
-          .status(UNAUTHORIZED_DATA_ERROR_CODE)
+          .status(FORBIDDEN_ERROR_CODE)
           .send({ message: "You cannot delete another user's items" });
       }
-      clothingItem
+     return clothingItem
         .deleteOne()
         .then(() => {
           return res.send({ message: "Item successfully deleted" });
@@ -63,7 +64,7 @@ module.exports.deleteClothingItem = (req, res) => {
           .status(INVALID_DATA_ERROR_CODE)
           .send({ message: "Invalid ID format" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
 
@@ -80,7 +81,7 @@ module.exports.likeClothingItem = (req, res) => {
           .status(DATA_NOT_FOUND_ERROR_CODE)
           .send({ message: "Item not found" });
       }
-      res.send(clothingItem);
+      return res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
@@ -88,7 +89,7 @@ module.exports.likeClothingItem = (req, res) => {
           .status(INVALID_DATA_ERROR_CODE)
           .send({ message: "Invalid ID format" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };
 
@@ -105,7 +106,7 @@ module.exports.unlikeClothingItem = (req, res) => {
           .status(DATA_NOT_FOUND_ERROR_CODE)
           .send({ message: "Item not found" });
       }
-      res.send(clothingItem);
+      return res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
@@ -113,6 +114,6 @@ module.exports.unlikeClothingItem = (req, res) => {
           .status(INVALID_DATA_ERROR_CODE)
           .send({ message: "Invalid ID format" });
       }
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
     });
 };

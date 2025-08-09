@@ -1,8 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const usersRouter = require("./routes/users");
-const clothingItemsRouter = require("./routes/clothingitems");
+const router = require("./routes/index");
+const {DATA_NOT_FOUND_ERROR_CODE} = require ("./utils/errors");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -10,16 +10,12 @@ const { PORT = 3001 } = process.env;
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db");
 
 app.use(express.json());
-
 app.use(cors());
+app.use(router);
 
-//Routers
-app.use(usersRouter);
-app.use(clothingItemsRouter);
-
-//Handling all undefined routes (404)
+// Handling all undefined routes (404)
 app.use((req, res) => {
-  res.status(404).send({ message: "Requested resource not found" });
+  res.status(DATA_NOT_FOUND_ERROR_CODE).send({ message: "Requested resource not found" });
 });
 
 
