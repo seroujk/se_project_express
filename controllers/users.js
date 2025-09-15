@@ -1,38 +1,33 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/user");
-const {
-  INVALID_DATA_ERROR_CODE,
-  SERVER_ERROR_CODE,
-  DATA_NOT_FOUND_ERROR_CODE,
-  DUPLICATE_DATA_ERROR_CODE_CODE,
-  UNAUTHORIZED_DATA__ERROR_CODE,
-} = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
+const ConflictError = require("../errors/ConflictError");
+const UnauthorizedError = require("../errors/UnauthorizedError");
 
 // GET /users/me - returns a user by _id
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        return res
-          .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "User not found" });
+        const err = new NotFoundError("User not found");
+        return next(err);
       }
-     return res.send(user);
+      return res.send(user);
     })
-    .catch((err) => {
-      if (err.name === "CastError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid ID format" });
+    .catch((error) => {
+      if (error.name === "CastError") {
+        const err = new BadRequestError("Invalid ID format");
+        return next(err);
       }
-      return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(error);
     });
 };
 
 // PATCH users/me
-module.exports.updateCurrentUser = (req, res) => {
+module.exports.updateCurrentUser = (req, res, next) => {
   const { name, avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -42,29 +37,26 @@ module.exports.updateCurrentUser = (req, res) => {
   )
     .then((updatedUser) => {
       if (!updatedUser) {
-        return res
-          .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "User not found" });
+        const err = new NotFoundError("User not found");
+        return next(err);
       }
       return res.status(200).send(updatedUser);
     })
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid user data" });
+    .catch((error) => {
+      if (error.name === "ValidationError") {
+        const err = new BadRequestError("Invalid user data");
+        return next(err);
       }
-      if (err.name === "CastError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid ID format" });
+      if (error.name === "CastError") {
+        const err = new BadRequestError("Invalid ID format");
+        return next(err);
       }
-      return res.status(SERVER_ERROR_CODE).send({ message: "Server Error" });
+      return next(error);
     });
 };
 
 // POST /users - create a user
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
   bcrypt
     .hash(password, 10)
@@ -74,30 +66,32 @@ module.exports.createUser = (req, res) => {
     .then((user) => {
       const userObject = user.toObject();
       delete userObject.password;
-     return res.status(201).send(userObject);
+      return res.status(201).send(userObject);
     })
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid user data" });
+    .catch((error) => {
+      if (error.name === "ValidationError") {
+        const err = new BadRequestError("Invalid user data");
+        return next(err);
       }
-      if (err.code === 11000) {
-        return res
-          .status(DUPLICATE_DATA_ERROR_CODE_CODE)
-          .send({ message: "Email already exists" });
+      if (error.code === 11000) {
+        const err = new ConflictError("Email already exists");
+        return next(err);
+        // return res
+        //   .status(DUPLICATE_DATA_ERROR_CODE_CODE)
+        //   .send({ message: "Email already exists" });
       }
-      return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(error);
     });
 };
 
 // Authentication Handler
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res
-      .status(INVALID_DATA_ERROR_CODE)
-      .send({ message: "The email and password fields are required" });
+    const err = new BadRequestError(
+      "The email and password fields are required"
+    );
+    return next(err);
   }
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -106,13 +100,12 @@ module.exports.login = (req, res) => {
       });
       res.send({ token });
     })
-    .catch((err) => {
+    .catch((error) => {
       // Authentication error
-      if (err.message.includes("Incorrect email or password")) {
-        return res
-          .status(UNAUTHORIZED_DATA__ERROR_CODE)
-          .send({ message: err.message });
+      if (error.message.includes("Incorrect email or password")) {
+        const err = new UnauthorizedError(error.message);
+        return next(err);
       }
-      return res.status(SERVER_ERROR_CODE).send({message: "Server error"})
+      return next(error);
     });
 };

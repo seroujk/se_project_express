@@ -1,75 +1,67 @@
 const ClothingItem = require("../models/clothingitem");
-const {
-  INVALID_DATA_ERROR_CODE,
-  SERVER_ERROR_CODE,
-  DATA_NOT_FOUND_ERROR_CODE,
-  FORBIDDEN_ERROR_CODE
-} = require("../utils/errors");
+const ForbiddenError = require("../errors/ForbiddenError");
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
 
 // GET /items - return all clothing items
-module.exports.getClothingItems = (req, res) => {
+module.exports.getClothingItems = (req, res, next) => {
   ClothingItem.find({})
     .then((clothingItems) => res.send(clothingItems))
-    .catch(() =>
-      res.status(SERVER_ERROR_CODE).send({ message: "Server error" })
-    );
+    .catch((err) => {
+      next(err);
+    });
 };
 
 // POST /items - create a clothing item
-module.exports.createClothingItem = (req, res) => {
+module.exports.createClothingItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
-
   ClothingItem.create({ name, weather, imageUrl, owner })
     .then((clothingItem) => res.status(201).send(clothingItem))
-    .catch((err) => {
-      if (err.name === "ValidationError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid clothing item data" });
+    .catch((error) => {
+      if (error.name === "ValidationError") {
+        const err = new BadRequestError("Invalid Clothing Item Data");
+        return next(err);
       }
-     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(error);
     });
 };
 
 // DELETE /items/:itemId - delete a clothing item
-module.exports.deleteClothingItem = (req, res) => {
+module.exports.deleteClothingItem = (req, res, next) => {
   const owner = req.user._id;
   ClothingItem.findById(req.params.itemId)
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res
-          .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "Item Not Found" });
+        const err = new NotFoundError("Item not found");
+        return next(err);
       }
       if (clothingItem.owner.toString() !== owner) {
-        return res
-          .status(FORBIDDEN_ERROR_CODE)
-          .send({ message: "You cannot delete another user's items" });
+        const err = new ForbiddenError(
+          "You cannot delete another user's items"
+        );
+        return next(err);
       }
-     return clothingItem
+      return clothingItem
         .deleteOne()
         .then(() => {
           return res.send({ message: "Item successfully deleted" });
         })
         .catch((err) => {
-          return res
-            .status(SERVER_ERROR_CODE)
-            .send({ message: `Deletion Error: ${err}` });
+          return next(err);
         });
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid ID format" });
+        const error = new BadRequestError("Invalid ID format");
+        return next(error);
       }
-     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(err);
     });
 };
 
 // PUT /items/:itemId/likes - like an item
-module.exports.likeClothingItem = (req, res) => {
+module.exports.likeClothingItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -77,24 +69,22 @@ module.exports.likeClothingItem = (req, res) => {
   )
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res
-          .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "Item not found" });
+        const err = new NotFoundError("Item not found");
+        return next(err);
       }
       return res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid ID format" });
+        const error = new BadRequestError("Invalid ID format");
+        return next(error);
       }
-     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(err);
     });
 };
 
 // DELETE /items/:itemId/likes - unlike an item
-module.exports.unlikeClothingItem = (req, res) => {
+module.exports.unlikeClothingItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -102,18 +92,16 @@ module.exports.unlikeClothingItem = (req, res) => {
   )
     .then((clothingItem) => {
       if (!clothingItem) {
-        return res
-          .status(DATA_NOT_FOUND_ERROR_CODE)
-          .send({ message: "Item not found" });
+        const err = new NotFoundError("Item not found");
+        return next(err);
       }
       return res.send(clothingItem);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res
-          .status(INVALID_DATA_ERROR_CODE)
-          .send({ message: "Invalid ID format" });
+        const error = new BadRequestError("Invalid ID format");
+        return next(error);
       }
-     return res.status(SERVER_ERROR_CODE).send({ message: "Server error" });
+      return next(err);
     });
 };
