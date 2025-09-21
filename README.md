@@ -26,3 +26,11 @@ WTWR (What to Wear?) is a back-end server for a weather-based clothing recommend
 
 ### Testing
 Before committing your code, make sure you edit the file `sprint.txt` in the root folder. The file `sprint.txt` should contain the number of the sprint you're currently working on. For ex. 12
+
+## Deployment
+
+The project is depolyed using Google Cloud sercvices at : api.wtwrtoday.crabdance.com
+
+## Front End Link
+
+The project's fronted is deployed at : www.wtwrtoday.crabdance.com
