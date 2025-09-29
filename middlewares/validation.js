@@ -71,7 +71,7 @@ module.exports.validateAuthenticationBody = celebrate({
 
 module.exports.validateItemIds = celebrate({
   params: Joi.object().keys({
-    itemId: Joi.string().hexadecimal().length(24).messages({
+    itemId: Joi.string().hex().length(24).messages({
     "string.empty" : 'This item does not exist'
     }),
   })
@@ -79,7 +79,7 @@ module.exports.validateItemIds = celebrate({
 
 module.exports.validateUserIds = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().hexadecimal().length(24).messages({
+    userId: Joi.string().hex().length(24).messages({
       "string.empty": 'This is user does not exist'
     }),
   })
